@@ -1,0 +1,5 @@
+dl.method:has(dt[id$=".__init__"]), 
+dl.objective:has(dt[id$=".__init__"]),
+.autosummary tr:has(a[href*="__init__"]) {
+    display: none !important;
+}
