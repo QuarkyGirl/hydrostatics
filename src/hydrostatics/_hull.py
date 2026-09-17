@@ -412,13 +412,6 @@ class SplitHull(GmshObject):
         self._split_view.show_only()
         gmsh.view.option.setNumber(self._split_view.tag, "ShowScale", 0)
         gmsh.fltk.run()
-
-    def remove(self) -> None:
-        """
-        Remove Gmsh objects before instance is garbage collected. Failure to
-        call ``remove()`` will lead to extraneous Gmsh views.
-        """
-        self._split_view.remove()
     
 
 
