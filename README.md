@@ -1,4 +1,6 @@
-# Python Sailboat Hydrostatics Library
+# [Python Sailboat Hydrostatics Library](https://www.nellhall.com/hydrostatics)
+
+[![Documentation](https://img.shields.io/badge/docs-GitHub_Pages-blue)](https://www.nellhall.com/hydrostatics)
 
 A work-in-progress package for evaluting hydrostatic quantities for
 sailboat design and optimization. Many of the meshing functionalities
