@@ -209,7 +209,7 @@ class Hull(GmshModel):
             initial_trim: float,
             rho: float,
             tol: float) -> SolvedHull:
-        def objective_function(trim: float):
+        def objective_function(trim):
             split = self.split(self._normal_vector(heel, trim), waterline, rho=rho)
             result = split.righting_moment()[1]
             return result
@@ -232,8 +232,11 @@ class Hull(GmshModel):
         _normal = _utils.normalized(np.asarray(normal))
         lb, ub = self._bbox()
         bracket = (_normal.dot(lb), _normal.dot(ub))
-        objf = lambda w_l: self.split(_normal, w_l, rho=rho).displacement - displacement
-        sol = root_scalar(objf, bracket=bracket)
+        def objective_function(w_l):
+            split = self.split(_normal, w_l, rho=rho)
+            result = split.displacement - displacement
+            return result
+        sol = root_scalar(objective_function, bracket=bracket)
         waterline = sol.x
         return SolvedHull(self, _normal, waterline, rho, sol.success, sol.message)
     
@@ -292,6 +295,7 @@ class SplitHull(GmshObject):
         self._waterline = waterline
         self._split_view = _views.Split(self.hull._volume_field, normal, -1.*waterline)
         self.rho = rho
+
 
     @property
     def hull(self) -> Hull:
@@ -408,6 +412,15 @@ class SplitHull(GmshObject):
         self._split_view.show_only()
         gmsh.view.option.setNumber(self._split_view.tag, "ShowScale", 0)
         gmsh.fltk.run()
+
+    def remove(self) -> None:
+        """
+        Remove Gmsh objects before instance is garbage collected. Failure to
+        call ``remove()`` will lead to extraneous Gmsh views.
+        """
+        self._split_view.remove()
+    
+
 
 class SolvedHull(SplitHull):
     """

@@ -1,4 +1,5 @@
 from collections.abc import Callable
+from weakref import finalize
 
 import gmsh
 import numpy as np
@@ -21,6 +22,7 @@ class GmshView:
     """
     def __init__(self, tag: int) -> None:
         self._tag = tag
+        finalize(self, GmshView._remove, tag)
     
     @property
     def tag(self) -> int:
@@ -45,12 +47,16 @@ class GmshView:
             Index Gmsh view tag.
         """
         return gmsh.view.getIndex(self.tag)
+
+    @staticmethod
+    def _remove(tag: int) -> None:
+        gmsh.view.remove(tag)
     
     def remove(self) -> None:
         """
         Remove view from Gmsh
         """
-        gmsh.view.remove(self.tag)
+        self._remove(self.tag)
 
     def show_only(self) -> None:
         """
@@ -82,7 +88,7 @@ class Field(GmshView):
             fun: Callable[[NDArray], NDArray], 
             vectorized: bool = False) -> None:
         self._fun = fun
-        self._tag = gmsh.view.add("Mesh view")
+        super().__init__(gmsh.view.add("Mesh view"))
 
         node_tags, coords, parametricCoord = gmsh.model.mesh.getNodes()
         coords = coords.reshape(-1,3)
@@ -129,7 +135,7 @@ class Integral(GmshView):
         gmsh.plugin.set_number("Integrate", "View", self.field.index)
         gmsh.plugin.set_number("Integrate", "Dimension", dim)
         tag = gmsh.plugin.run("Integrate")
-        GmshView.__init__(self, tag)
+        super().__init__(self, tag)
         self._parse_data()
         if remove: self.remove()
     
@@ -173,7 +179,7 @@ class Integral(GmshView):
         data_type, num_elements, integrals = gmsh.view.getListData(self.tag)
         self._result = integrals[0][-1]
         
-class Split(Field):
+class Split(GmshView):
     """
     Split a mesh with field along a plane and keep the region below. Cutting
     plane is defined by the equation ``normal.dot(x) = d``, where ``normal``
@@ -198,7 +204,7 @@ class Split(Field):
         self._field = field
         self._normal = _utils.normalized(np.asarray(normal))
         self._d = d
-        self._tag = self._cut()
+        super().__init__(self._cut())
         self._set_cob_volume()
 
     @property
