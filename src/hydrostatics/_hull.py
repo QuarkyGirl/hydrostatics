@@ -195,7 +195,11 @@ class Hull(GmshModel):
 
         approx_normal = self._normal_vector(heel, initial_trim)
         box_lb, box_ub = self._bbox()
-        waterline_guess = np.dot((box_lb + box_ub)/2., approx_normal)
+        
+        initial_tol = max(tol,1.e-2)
+        initial_sol = self._solve_waterline(displacement,approx_normal, 
+            rho, initial_tol)
+        waterline_guess = initial_sol.waterline
 
         sol = root(objective_function, 
             x0=(waterline_guess,initial_trim), tol=tol, method='hybr')
