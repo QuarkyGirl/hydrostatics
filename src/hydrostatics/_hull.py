@@ -232,14 +232,17 @@ class Hull(GmshModel):
             tol: float) -> SolvedHull:
         _normal = _utils.normalized(np.asarray(normal))
         lb, ub = self._bbox()
-        bracket = (_normal.dot(lb), _normal.dot(ub))
+        coord_choices = np.array((lb,ub)).T
+        corners = np.array(np.meshgrid(*coord_choices)).reshape(3,-1).T
+        corner_wls = corners @ _normal
+        bracket = (np.amin(corner_wls), np.amax(corner_wls))
         def objective_function(w_l):
             split = self.split(_normal, w_l, rho=rho)
             result = split.displacement - displacement
             return result
         sol = root_scalar(objective_function, bracket=bracket)
-        waterline = sol.x
-        return SolvedHull(self, _normal, waterline, rho, sol.success, sol.message)
+        waterline = sol.root
+        return SolvedHull(self, _normal, waterline, rho, sol.converged, sol.flag)
     
     def _import_stl(self, filename: str) -> None:
         gmsh.merge(filename)
