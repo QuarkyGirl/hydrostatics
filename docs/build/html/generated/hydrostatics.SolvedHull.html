@@ -553,11 +553,27 @@ displacements and moments are essentially in units of rho.</p>
 <dl class="py property">
 <dt class="sig sig-object py" id="hydrostatics.SolvedHull.x">
 <span class="property"><span class="k"><span class="pre">property</span></span><span class="w"> </span></span><span class="sig-name descname"><span class="pre">x</span></span><a class="headerlink" href="#hydrostatics.SolvedHull.x" title="Link to this definition">#</a></dt>
-<dd><p>Local x vector in waterplane.</p>
+<dd><p>Local x vector in waterplane. Default is projection of global x vector
+<code class="docutils literal notranslate"><span class="pre">(1,0,0)</span></code> onto the waterplane. Can be set.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Returns<span class="colon">:</span></dt>
 <dd class="field-odd"><dl class="simple">
 <dt><strong>x</strong><span class="classifier">ndarray, shape (3,)</span></dt><dd><p>Local x vector in waterplane.</p>
+</dd>
+</dl>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py property">
+<dt class="sig sig-object py" id="hydrostatics.SolvedHull.y">
+<span class="property"><span class="k"><span class="pre">property</span></span><span class="w"> </span></span><span class="sig-name descname"><span class="pre">y</span></span><a class="headerlink" href="#hydrostatics.SolvedHull.y" title="Link to this definition">#</a></dt>
+<dd><p>Local y vector in waterplane. Default is vector perpendicular to both
+<code class="docutils literal notranslate"><span class="pre">x</span></code> and <code class="docutils literal notranslate"><span class="pre">normal</span></code>. Can be set.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><dl class="simple">
+<dt><strong>y</strong><span class="classifier">ndarray, shape (3,)</span></dt><dd><p>Local y vector in waterplane.</p>
 </dd>
 </dl>
 </dd>
@@ -620,6 +636,7 @@ displacements and moments are essentially in units of rho.</p>
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#hydrostatics.SolvedHull.volume"><code class="docutils literal notranslate"><span class="pre">SolvedHull.volume</span></code></a></li>
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#hydrostatics.SolvedHull.waterline"><code class="docutils literal notranslate"><span class="pre">SolvedHull.waterline</span></code></a></li>
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#hydrostatics.SolvedHull.x"><code class="docutils literal notranslate"><span class="pre">SolvedHull.x</span></code></a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#hydrostatics.SolvedHull.y"><code class="docutils literal notranslate"><span class="pre">SolvedHull.y</span></code></a></li>
 </ul>
 </li>
 </ul>

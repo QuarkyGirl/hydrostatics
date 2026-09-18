@@ -24,7 +24,8 @@ class Hull(GmshModel):
     ----------
     filename : str
         Filename of mesh that defines hull geometry. Must point to an stl file
-        composed of closed, watertight surfaces.
+        composed of closed, watertight surfaces, with longitudinal direction of
+        hull along x-axis.
     center_of_mass: array_like, shape(3,)
         Cartesian coordinates of center of mass of hull.
     model_name: str or None
@@ -189,10 +190,10 @@ class Hull(GmshModel):
         def objective_function(x):
             waterline, trim = x
             split = self.split(self._normal_vector(heel, trim), waterline, rho=rho)
-            result = (split.displacement - displacement, split.righting_moment()[1])
+            result = (split.displacement - displacement, split.righting_moment().dot(split.y))
             return result
 
-        approx_normal = self._normal_vector(heel, 0.)
+        approx_normal = self._normal_vector(heel, initial_trim)
         box_lb, box_ub = self._bbox()
         waterline_guess = np.dot((box_lb + box_ub)/2., approx_normal)
 
@@ -282,6 +283,8 @@ class SplitHull(GmshObject):
     waterline
     volume
     center_of_buoyancy
+    x
+    y
     """
     def __init__(
             self, 
@@ -295,6 +298,8 @@ class SplitHull(GmshObject):
         self._waterline = waterline
         self._split_view = _views.Split(self.hull._volume_field, normal, -1.*waterline)
         self.rho = rho
+        self._x = None
+        self._y = None
 
 
     @property
@@ -385,25 +390,47 @@ class SplitHull(GmshObject):
         return moment
     
     @cached_property
-    def _rot_matrix(self) -> _utils.mat3D:
-        ax = np.cross(np.array((0,0,1.)), self.normal)
-        if np.all(ax == 0):
-            ax = np.array((0,1.,0))
-        theta = np.arccos(np.dot(np.array((0,0,1.)), self.normal))
-        return _utils.rot_matrix(ax, theta)
+    def _default_x(self) -> _utils.vec3D:
+        x = np.array((1.,0,0))
+        return _utils.normalized(x - np.dot(self.normal,x)*self.normal)
     
     @property
     def x(self) -> _utils.vec3D:
         """
-        Local x vector in waterplane.
+        Local x vector in waterplane. Default is projection of global x vector
+        ``(1,0,0)`` onto the waterplane. Can be set.
 
         Returns
         -------
         x : ndarray, shape (3,)
             Local x vector in waterplane.
         """
-        return self._rot_matrix @ np.array((1.,0,0))
+        return self._default_x if self._x is None else self._x
 
+    @x.setter
+    def x(self, value) -> None:
+        self._x = value
+
+    @cached_property
+    def _default_y(self) -> _utils.vec3D:
+        return _utils.normalized(-np.cross(np.array((1.,0,0)),self.normal))
+
+    @property
+    def y(self) -> _utils.vec3D:
+        """
+        Local y vector in waterplane. Default is vector perpendicular to both
+        ``x`` and ``normal``. Can be set.
+
+        Returns
+        -------
+        y : ndarray, shape (3,)
+            Local y vector in waterplane.
+        """
+        return self._default_y if self._y is None else self._y
+
+    @y.setter
+    def y(self, value) -> None:
+        self._y = value
     
     def plot(self) -> None:
         """
